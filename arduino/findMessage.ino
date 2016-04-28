@@ -81,6 +81,9 @@ void findStopSequence() {
         for (int c = 0 ; c < 3 ; c++) {
           smlMessage[smlIndex++] = infraredHead.read();
         }
+        // smlIndex is at this point one bigger than the amount of stored inBytes because it is incremented evreytime after reading.
+        // To store the real smlIndex, we have to substract the last incrementation.
+        smlIndex--;
       }
     }
     else {
@@ -91,18 +94,17 @@ void findStopSequence() {
 
 void publishMessage() {
 
-  //  int arrSize = 2 * smlIndex + 1;
-  //  char smlMessageAsString[arrSize];
-  //  char *myPtr = &smlMessageAsString[0]; //or just myPtr=charArr; but the former described it better.
-  //
-  //  for (int i = 0; i < smlIndex; i++) {
-  //    snprintf(myPtr, 3, "%02x", smlMessage[i]); //convert a byte to character string, and save 2 characters (+null) to charArr;
-  //    myPtr += 2; //increment the pointer by two characters in charArr so that next time the null from the previous go is overwritten.
-  //  }
+    int charArraySize = 2 * smlIndex + 1; // two ASCII's needed for one byte: EF => {'E','F'} + 1 for termination
+    char smlMessageAsString[charArraySize];
+    char *myPtr = &smlMessageAsString[0]; //or just myPtr=charArr; but the former described it better.
+  
+    for (int i = 0; i <= smlIndex; i++) {
+      snprintf(myPtr, 3, "%02x", smlMessage[i]); //convert a byte to character string, and save 2 characters (+null) to charArr;
+      myPtr += 2; //increment the pointer by two characters in charArr so that next time the null from the previous go is overwritten.
+    }
 
-  Serial.print("Byte count: ");
-  Serial.println(smlIndex);
-  memset(smlMessage, 0, sizeof(smlMessage)); // clear the buffer
+  Serial.println(smlMessageAsString);
+  memset(smlMessage, 0, sizeof(smlMessage)); // clear the byte buffer
   smlIndex = 0;
   stage = 0; // start over
 }
